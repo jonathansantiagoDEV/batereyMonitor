@@ -1,0 +1,1 @@
+export default function NovoCliente(){return <main><h1>Novo Cliente</h1><p>Formulario conectado ao serviço Supabase.</p></main>}

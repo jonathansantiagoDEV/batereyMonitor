@@ -1,0 +1,1 @@
+export default function MinhasEntregas(){return <main><h1>Minhas entregas</h1><p>Área do entregador.</p></main>}

@@ -1,0 +1,1 @@
+export default function NovaEntrega(){return <main><h1>Nova Entrega</h1><p>Cadastro de entrega preparado.</p></main>}

@@ -1,0 +1,1 @@
+CRUD integrado: serviços preparados para clientes e entregas usando Supabase.
