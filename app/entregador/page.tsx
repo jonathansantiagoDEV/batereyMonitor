@@ -40,50 +40,42 @@ export default function EntregadorPage() {
     setStatus('AGUARDANDO');
   }
 
-  // CORRETO
-useEffect(() => {
-  const watchId = navigator.geolocation.watchPosition(
-    (pos) => {
-      // sua lógica de atualização de posição
-    },
-    (err) => console.error(err),
-    { enableHighAccuracy: true }
-  );
+  useEffect(() => {
+    let watchId: number | undefined;
 
-  return () => {
-    if (watchId !== undefined) {
-      navigator.geolocation.clearWatch(watchId);
+    if (status === 'EM_ROTA') {
+      watchId = navigator.geolocation.watchPosition(
+        async (position) => {
+          const local = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+          setPos(local);
+
+          const agora = Date.now();
+          if (agora - ultimoEnvioRef.current < INTERVALO_MIN_MS) return;
+          ultimoEnvioRef.current = agora;
+
+          if (!entregadorIdRef.current) return;
+
+          const { error } = await registrarLocalizacao(
+            entregadorIdRef.current,
+            local.latitude,
+            local.longitude,
+            position.coords.speed ?? null
+          );
+          if (error) setErro(error.message);
+        },
+        () => setErro('Erro ao obter localização. Verifique a permissão de GPS.'),
+        { enableHighAccuracy: true }
+      );
     }
-  };
-}, []);
 
-    const watchId = navigator.geolocation.watchPosition(
-      async (position) => {
-        const local = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-        setPos(local);
-
-        const agora = Date.now();
-        if (agora - ultimoEnvioRef.current < INTERVALO_MIN_MS) return;
-        ultimoEnvioRef.current = agora;
-
-        if (!entregadorIdRef.current) return;
-
-        const { error } = await registrarLocalizacao(
-          entregadorIdRef.current,
-          local.latitude,
-          local.longitude,
-          position.coords.speed ?? null
-        );
-        if (error) setErro(error.message);
-      },
-      () => setErro('Erro ao obter localização. Verifique a permissão de GPS.'),
-      { enableHighAccuracy: true }
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
+    return () => {
+      if (watchId !== undefined) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
   }, [status]);
 
   return (
