@@ -56,6 +56,26 @@ export default function ChefeDashboardPage() {
             const entregadorAtual = prev[novaLoc.entregador_id];
             const historicoAntigo = entregadorAtual?.historico || [];
 
+            // Se passou muito tempo desde o último ponto registrado, é uma
+            // nova corrida (não uma continuação da anterior) — reinicia o
+            // histórico em vez de emendar, senão o mapa desenha uma linha
+            // reta "voadora" ligando o fim da corrida antiga ao início da
+            // nova.
+            const ultimoTimestamp = entregadorAtual?.created_at
+              ? new Date(entregadorAtual.created_at).getTime()
+              : null;
+            const novoTimestamp = novaLoc.created_at
+              ? new Date(novaLoc.created_at).getTime()
+              : null;
+            const GAP_MAXIMO_MS = 60_000; // 1 minuto sem atualização = nova corrida
+
+            const houveGap =
+              ultimoTimestamp !== null &&
+              novoTimestamp !== null &&
+              novoTimestamp - ultimoTimestamp > GAP_MAXIMO_MS;
+
+            const historicoBase = houveGap ? [] : historicoAntigo;
+
             return {
               ...prev,
               [novaLoc.entregador_id]: {
@@ -65,7 +85,7 @@ export default function ChefeDashboardPage() {
                 longitude: novaLoc.longitude,
                 velocidade: novaLoc.velocidade,
                 created_at: novaLoc.created_at,
-                historico: [...historicoAntigo, novaPonta],
+                historico: [...historicoBase, novaPonta],
               },
             };
           });

@@ -94,9 +94,12 @@ export default function EnderecoAutocomplete({
     } else if (ev.key === 'ArrowUp') {
       ev.preventDefault();
       setIndiceAtivo((i) => Math.max(i - 1, 0));
-    } else if (ev.key === 'Enter' && indiceAtivo >= 0) {
+    } else if (ev.key === 'Enter') {
+      // Se o usuário não navegou com as setas, seleciona a primeira
+      // sugestão da lista (comportamento esperado ao apertar Enter direto).
       ev.preventDefault();
-      selecionar(sugestoes[indiceAtivo]);
+      const indice = indiceAtivo >= 0 ? indiceAtivo : 0;
+      selecionar(sugestoes[indice]);
     } else if (ev.key === 'Escape') {
       setAberto(false);
     }

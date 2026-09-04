@@ -19,7 +19,7 @@ const DURACAO_ALVO_S = 90; // tempo total (aprox.) que a simulação leva pra co
 export default function SimuladorEntregador() {
   const [aberto, setAberto] = useState(false);
   const [origem, setOrigem] = useState('');
-  const [destino, setDestino] = useState('Esquinas Baterias, Mandacaru, João Pessoa - PB');
+  const [destino, setDestino] = useState('');
   // Guarda a coordenada exata quando o usuário escolhe uma sugestão do
   // autocomplete, pra não precisar geocodificar o endereço de novo.
   const [origemCoord, setOrigemCoord] = useState<Coordenada | null>(null);
