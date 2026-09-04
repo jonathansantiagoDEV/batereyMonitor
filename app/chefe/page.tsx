@@ -62,7 +62,7 @@ export default function ChefeDashboardPage() {
                 latitude: novaLoc.latitude,
                 longitude: novaLoc.longitude,
                 velocidade: novaLoc.velocidade,
-                created_at: novaLoc.data_hora,
+                created_at: novaLoc.created_at,
                 historico: [...historicoAntigo, novaPonta],
               },
             };
