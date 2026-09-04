@@ -56,7 +56,7 @@ export default function MapaChefe({ entregadores }: { entregadores: EntregadorMa
     <MapContainer center={centroPadrao} zoom={14} style={{ height: '100%', width: '100%' }}>
       <TileLayer
   attribution='&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a>'
-  url="https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
+  url={`https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png?api_key=${process.env.NEXT_PUBLIC_STADIA_API_KEY}`}
 />
 
       <AjustarVisaoMapa entregadores={entregadores} />
