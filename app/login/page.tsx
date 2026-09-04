@@ -61,6 +61,11 @@ export default function LoginPage() {
         // window.location.origin se adapta sozinho entre produção e
         // previews da Vercel — não precisa fixar a URL do site.
         redirectTo: `${window.location.origin}/auth/callback`,
+        // Sem isso o Google pode pular a tela de escolha de conta e
+        // entrar direto com a conta já em cache no navegador.
+        queryParams: {
+          prompt: 'select_account',
+        },
       },
     });
 
