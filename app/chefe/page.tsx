@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import dynamic from 'next/dynamic';
 
@@ -88,9 +89,14 @@ export default function ChefeDashboardPage() {
       {/* Sidebar Lateral */}
       <aside className="w-80 bg-gray-900 border-r border-gray-800 flex flex-col z-10">
         <div className="p-4 border-b border-gray-800">
-          <div className="flex items-center space-x-2">
-            <span className="h-3 w-3 rounded-full bg-blue-500 animate-ping"></span>
-            <h1 className="text-lg font-bold text-white tracking-wide">Radar de Entregas</h1>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="h-3 w-3 rounded-full bg-blue-500 animate-ping"></span>
+              <h1 className="text-lg font-bold text-white tracking-wide">Radar de Entregas</h1>
+            </div>
+            <Link href="/perfil" className="text-xs text-blue-400 font-medium">
+              Meu perfil
+            </Link>
           </div>
           <p className="text-xs text-gray-400 mt-1">Acompanhamento em tempo real</p>
 

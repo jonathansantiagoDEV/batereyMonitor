@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { registrarLocalizacao } from '@/lib/localizacaoService';
 import { getOuCriarEntregador, atualizarStatusEntregador } from '@/lib/entregadorService';
@@ -80,7 +81,12 @@ export default function EntregadorPage() {
 
   return (
     <main className="p-6">
-      <h1 className="text-2xl font-bold">Entregador</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-2xl font-bold">Entregador</h1>
+        <Link href="/perfil" className="text-sm text-blue-600 font-medium">
+          Meu perfil
+        </Link>
+      </div>
       <p>Status: {status}</p>
 
       {status === 'AGUARDANDO' ? (
