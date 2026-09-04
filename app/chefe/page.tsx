@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import dynamic from 'next/dynamic';
+import SimuladorEntregador from '@/components/SimuladorEntregador';
 
 const MapaEmTempoReal = dynamic(() => import('@/components/MapaChefe'), { ssr: false });
 
@@ -120,6 +121,9 @@ export default function ChefeDashboardPage() {
             <p className="text-lg font-bold text-yellow-400">{parados}</p>
           </div>
         </div>
+
+        {/* Simulador de entregador (testes sem entregador real em campo) */}
+        <SimuladorEntregador />
 
         {/* Lista de Entregadores */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
