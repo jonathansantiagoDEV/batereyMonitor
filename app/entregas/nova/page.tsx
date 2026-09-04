@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { criarEntrega } from '@/lib/entregasService';
 import { listarEntregadores } from '@/lib/entregadorService';
+import EnderecoAutocomplete from '@/components/EnderecoAutocomplete';
 
 type EntregadorOpcao = {
   id: string;
@@ -64,11 +65,11 @@ export default function NovaEntrega() {
           value={cliente}
           onChange={(e) => setCliente(e.target.value)}
         />
-        <input
-          className="border rounded p-2"
+        <EnderecoAutocomplete
+          className="border rounded p-2 w-full"
           placeholder="Endereço"
           value={endereco}
-          onChange={(e) => setEndereco(e.target.value)}
+          onChange={setEndereco}
         />
 
         <select

@@ -4,7 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { getOuCriarEntregador, atualizarStatusEntregador } from '@/lib/entregadorService';
 import { registrarLocalizacao } from '@/lib/localizacaoService';
-import { geocodificarEndereco, obterRota, distanciaMetros, Coordenada } from '@/lib/routingService';
+import {
+  geocodificarEndereco,
+  obterRota,
+  distanciaMetros,
+  Coordenada,
+  SugestaoEndereco,
+} from '@/lib/routingService';
+import EnderecoAutocomplete from '@/components/EnderecoAutocomplete';
 
 const INTERVALO_MS = 3000; // a cada quanto tempo grava uma localização
 const DURACAO_ALVO_S = 90; // tempo total (aprox.) que a simulação leva pra completar a rota
@@ -13,6 +20,10 @@ export default function SimuladorEntregador() {
   const [aberto, setAberto] = useState(false);
   const [origem, setOrigem] = useState('');
   const [destino, setDestino] = useState('Esquinas Baterias, Mandacaru, João Pessoa - PB');
+  // Guarda a coordenada exata quando o usuário escolhe uma sugestão do
+  // autocomplete, pra não precisar geocodificar o endereço de novo.
+  const [origemCoord, setOrigemCoord] = useState<Coordenada | null>(null);
+  const [destinoCoord, setDestinoCoord] = useState<Coordenada | null>(null);
   const [rodando, setRodando] = useState(false);
   const [obtendoLocal, setObtendoLocal] = useState(false);
   const [progresso, setProgresso] = useState(0);
@@ -40,6 +51,7 @@ export default function SimuladorEntregador() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setOrigem(`${pos.coords.latitude}, ${pos.coords.longitude}`);
+        setOrigemCoord(null);
         setObtendoLocal(false);
       },
       () => {
@@ -48,6 +60,24 @@ export default function SimuladorEntregador() {
       },
       { enableHighAccuracy: true }
     );
+  }
+
+  function aoMudarOrigem(texto: string) {
+    setOrigem(texto);
+    setOrigemCoord(null);
+  }
+
+  function aoMudarDestino(texto: string) {
+    setDestino(texto);
+    setDestinoCoord(null);
+  }
+
+  function aoSelecionarOrigem(s: SugestaoEndereco) {
+    setOrigemCoord({ lat: s.lat, lon: s.lon });
+  }
+
+  function aoSelecionarDestino(s: SugestaoEndereco) {
+    setDestinoCoord({ lat: s.lat, lon: s.lon });
   }
 
   function parseCoordenadaDireta(texto: string): Coordenada | null {
@@ -67,9 +97,15 @@ export default function SimuladorEntregador() {
     return { lat, lon };
   }
 
-  async function resolverEndereco(texto: string): Promise<Coordenada | null> {
+  async function resolverEndereco(
+    texto: string,
+    coordSelecionada: Coordenada | null
+  ): Promise<Coordenada | null> {
     const direta = parseCoordenadaDireta(texto);
     if (direta) return direta;
+    // Se o endereço veio de uma sugestão do autocomplete, já temos a
+    // coordenada exata — evita bater de novo no Nominatim.
+    if (coordSelecionada) return coordSelecionada;
     return geocodificarEndereco(texto);
   }
 
@@ -84,7 +120,7 @@ export default function SimuladorEntregador() {
     setStatus('Localizando endereços...');
     setRodando(true);
 
-    const pontoOrigem = await resolverEndereco(origem);
+    const pontoOrigem = await resolverEndereco(origem, origemCoord);
     if (!pontoOrigem) {
       setErro('Não encontrei o endereço de origem. Tente ser mais específico (rua, bairro, cidade).');
       setRodando(false);
@@ -92,7 +128,7 @@ export default function SimuladorEntregador() {
       return;
     }
 
-    const pontoDestino = await resolverEndereco(destino);
+    const pontoDestino = await resolverEndereco(destino, destinoCoord);
     if (!pontoDestino) {
       setErro('Não encontrei o endereço de destino. Tente ser mais específico (rua, bairro, cidade).');
       setRodando(false);
@@ -215,11 +251,13 @@ export default function SimuladorEntregador() {
       {aberto && (
         <div className="px-4 pb-4 space-y-2">
           <div className="flex gap-2">
-            <input
-              className="flex-1 px-3 py-2 text-sm bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:border-blue-500"
+            <EnderecoAutocomplete
+              tema="escuro"
+              className="w-full px-3 py-2 text-sm bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:border-blue-500"
               placeholder="Endereço de origem"
               value={origem}
-              onChange={(e) => setOrigem(e.target.value)}
+              onChange={aoMudarOrigem}
+              onSelect={aoSelecionarOrigem}
               disabled={rodando}
             />
             <button
@@ -232,11 +270,13 @@ export default function SimuladorEntregador() {
             </button>
           </div>
 
-          <input
+          <EnderecoAutocomplete
+            tema="escuro"
             className="w-full px-3 py-2 text-sm bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:border-blue-500"
             placeholder="Endereço de destino"
             value={destino}
-            onChange={(e) => setDestino(e.target.value)}
+            onChange={aoMudarDestino}
+            onSelect={aoSelecionarDestino}
             disabled={rodando}
           />
 

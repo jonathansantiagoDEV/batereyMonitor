@@ -23,6 +23,50 @@ export async function geocodificarEndereco(endereco: string): Promise<Coordenada
   return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
 }
 
+export type SugestaoEndereco = { label: string; lat: number; lon: number };
+
+// Cache simples em memória pra não bater na API de novo quando o usuário
+// volta a digitar um prefixo já buscado antes (ex.: apaga e escreve de novo).
+const cacheSugestoes = new Map<string, SugestaoEndereco[]>();
+
+// Sugestões de endereço enquanto o usuário digita (autocomplete), via
+// Nominatim — mesma API pública usada pela geocodificação acima. Retorna
+// no máximo 5 resultados, já com label pronta pra exibir na lista.
+export async function sugerirEnderecos(query: string): Promise<SugestaoEndereco[]> {
+  const termo = query.trim();
+  if (termo.length < 3) return [];
+
+  const chave = termo.toLowerCase();
+  const cacheado = cacheSugestoes.get(chave);
+  if (cacheado) return cacheado;
+
+  const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=0&limit=5&countrycodes=br&q=${encodeURIComponent(
+    termo
+  )}`;
+
+  try {
+    const res = await fetch(url, {
+      headers: { 'Accept-Language': 'pt-BR' },
+    });
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+
+    const sugestoes: SugestaoEndereco[] = data.map((item: any) => ({
+      label: item.display_name as string,
+      lat: parseFloat(item.lat),
+      lon: parseFloat(item.lon),
+    }));
+
+    cacheSugestoes.set(chave, sugestoes);
+    return sugestoes;
+  } catch {
+    // Falha de rede não deve quebrar o formulário — só não mostra sugestões.
+    return [];
+  }
+}
+
 // Distância em metros entre dois pontos (fórmula de Haversine).
 export function distanciaMetros(a: Coordenada, b: Coordenada) {
   const R = 6371000;

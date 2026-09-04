@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { criarCliente } from '@/lib/clientesService';
+import EnderecoAutocomplete from '@/components/EnderecoAutocomplete';
 
 export default function NovoCliente() {
   const router = useRouter();
@@ -47,11 +48,11 @@ export default function NovoCliente() {
           value={telefone}
           onChange={(e) => setTelefone(e.target.value)}
         />
-        <input
-          className="border rounded p-2"
+        <EnderecoAutocomplete
+          className="border rounded p-2 w-full"
           placeholder="Endereço"
           value={endereco}
-          onChange={(e) => setEndereco(e.target.value)}
+          onChange={setEndereco}
         />
 
         <button
