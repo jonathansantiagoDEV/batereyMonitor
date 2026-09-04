@@ -1,40 +1,48 @@
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
 const TEXTO_STATUS: Record<string, string> = {
   PENDENTE: 'Aguardando saída para entrega',
-  EM_ROTA: 'Saiu para entrega',
-  ENTREGUE: 'Entregue',
+  EM_ROTA: 'Pedido a caminho',
+  ENTREGUE: 'Pedido entregue com sucesso',
+  CANCELADO: 'Entrega cancelada',
 };
 
-// Página pública (sem login) para o cliente final acompanhar a entrega
-// pelo link /rastreio/[token]. Usa o service role (supabaseAdmin) porque
-// as policies de RLS de "entregas" exigem auth.uid() — ver o comentário em
-// supabase/migrations/2026_add_token_rastreio.sql.
-export default async function Rastreio({ params }: { params: Promise<{ token: string }> }) {
+export default async function RastreioPage({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
   const { token } = await params;
+  const supabase = getSupabaseAdmin();
 
-  const { data: entrega, error } = await supabaseAdmin
+  const { data: entrega } = await supabase
     .from('entregas')
-    .select('id, status, cliente, endereco, created_at')
+    .select('*')
     .eq('token_rastreio', token)
     .single();
 
-  if (error || !entrega) {
+  if (!entrega) {
     return (
-      <main className="p-6 max-w-md mx-auto text-center">
-        <h1 className="text-xl font-bold mb-2">Entrega não encontrada</h1>
-        <p className="text-gray-600">Verifique o link de rastreio recebido.</p>
+      <main className="p-6 text-center">
+        <h1 className="text-xl font-bold text-red-600">Entrega não encontrada</h1>
+        <p className="text-gray-600 mt-2">
+          Verifique o link digitado e tente novamente.
+        </p>
       </main>
     );
   }
 
   return (
-    <main className="p-6 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Acompanhe sua entrega</h1>
-      <div className="border rounded p-4 space-y-2">
-        <p><strong>Cliente:</strong> {entrega.cliente || 'Não informado'}</p>
-        <p><strong>Endereço:</strong> {entrega.endereco || 'Não informado'}</p>
-        <p><strong>Status:</strong> {TEXTO_STATUS[entrega.status] || entrega.status}</p>
+    <main className="p-6 max-w-lg mx-auto">
+      <h1 className="text-2xl font-bold mb-4">Acompanhar Entrega</h1>
+      <div className="bg-white p-4 rounded shadow border">
+        <p className="text-sm text-gray-500">Código de Rastreio:</p>
+        <p className="font-mono text-lg font-bold mb-3">{token}</p>
+
+        <p className="text-sm text-gray-500">Status Atual:</p>
+        <p className="text-lg font-semibold text-blue-600">
+          {TEXTO_STATUS[entrega.status] || entrega.status}
+        </p>
       </div>
     </main>
   );
