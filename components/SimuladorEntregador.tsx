@@ -52,12 +52,18 @@ export default function SimuladorEntregador() {
 
   function parseCoordenadaDireta(texto: string): Coordenada | null {
     // Se o campo já estiver no formato "lat, lon" (preenchido pelo botão de
-    // localização atual), usa direto em vez de geocodificar por endereço.
-    const partes = texto.split(',').map((p) => p.trim());
-    if (partes.length !== 2) return null;
-    const lat = parseFloat(partes[0]);
-    const lon = parseFloat(partes[1]);
+    // localização atual, ou colado de algum mapa), usa direto em vez de
+    // geocodificar por endereço. Aceita espaços/parênteses/ponto-e-vírgula
+    // extras ao redor dos números.
+    const limpo = texto.trim();
+    const match = limpo.match(/^\(?\s*(-?\d+(?:\.\d+)?)\s*[,;]\s*(-?\d+(?:\.\d+)?)\s*\)?$/);
+    if (!match) return null;
+
+    const lat = parseFloat(match[1]);
+    const lon = parseFloat(match[2]);
     if (Number.isNaN(lat) || Number.isNaN(lon)) return null;
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+
     return { lat, lon };
   }
 
@@ -237,9 +243,10 @@ export default function SimuladorEntregador() {
           {!rodando ? (
             <button
               onClick={iniciarSimulacao}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm py-2 rounded-md"
+              disabled={obtendoLocal}
+              className="w-full bg-blue-600 hover:bg-blue-500 text-white text-sm py-2 rounded-md disabled:opacity-50"
             >
-              Iniciar simulação
+              {obtendoLocal ? 'Aguardando GPS...' : 'Iniciar simulação'}
             </button>
           ) : (
             <button
