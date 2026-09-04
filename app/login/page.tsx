@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -128,6 +129,13 @@ export default function LoginPage() {
         </button>
 
         {erro && <p className="text-red-600 text-sm text-center">{erro}</p>}
+
+        <p className="text-sm text-center text-gray-500">
+          Não tem conta?{' '}
+          <Link href="/cadastro" className="text-blue-600 font-medium">
+            Cadastre-se
+          </Link>
+        </p>
       </div>
     </main>
   );
