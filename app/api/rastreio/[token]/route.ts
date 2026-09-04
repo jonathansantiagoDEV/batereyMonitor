@@ -1,36 +1,38 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ token: string }> }
 ) {
   const { token } = await params;
+  const supabase = getSupabaseAdmin();
 
-  if (!token) {
-    return NextResponse.json({ error: 'Token não informado.' }, { status: 400 });
-  }
-
-  const { data: entrega, error } = await supabaseAdmin
+  const { data: entrega, error: entregaError } = await supabase
     .from('entregas')
-    .select('id, status, cliente, endereco, created_at')
+    .select('*')
     .eq('token_rastreio', token)
     .single();
 
-  if (error || !entrega) {
-    return NextResponse.json(
-      { error: 'Entrega não encontrada para este código de rastreio.' },
-      { status: 404 }
-    );
+  if (entregaError || !entrega) {
+    return NextResponse.json({ error: 'Entrega não encontrada' }, { status: 404 });
   }
 
-  // Só devolvemos o que o cliente final precisa ver publicamente —
-  // nunca IDs internos de entregador, telefone, etc.
+  let ultimaLocalizacao = null;
+  if (entrega.entregador_id) {
+    const { data: loc } = await supabase
+      .from('historico_localizacao')
+      .select('latitude, longitude, criado_em')
+      .eq('entregador_id', entrega.entregador_id)
+      .order('criado_em', { ascending: false })
+      .limit(1)
+      .single();
+
+    ultimaLocalizacao = loc;
+  }
+
   return NextResponse.json({
-    id: entrega.id,
-    status: entrega.status,
-    cliente: entrega.cliente,
-    endereco: entrega.endereco,
-    criado_em: entrega.created_at,
+    entrega,
+    localizacao: ultimaLocalizacao,
   });
 }
